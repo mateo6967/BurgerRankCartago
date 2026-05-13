@@ -1,1 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Burger Rank Cartago</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #1D1D1D;
+  color: white;
+}
+
+/* NAV */
+header {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+  background: black;
+}
+
+nav a {
+  margin: 0 10px;
+  color: #F4A261;
+  text-decoration: none;
+}
+
+/* HERO */
+#inicio {
+  padding: 80px;
+  background: linear-gradient(to right, #000, #1D1D1D);
+}
+
+#inicio h2 {
+  font-size: 50px;
+  color: #E63946;
+}
+
+button {
+  background: #E63946;
+  color: white;
+  border: none;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #F4A261;
+}
+
+/* CARDS */
+.cards {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+}
+
+.card {
+  background: #2a2a2a;
+  padding: 15px;
+  border-radius: 10px;
+  width: 200px;
+}
+
+/* SECCIONES */
+section {
+  padding: 40px;
+}
+
+input, textarea {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 6px;
+  border: none;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🍔 Burger Rank</h1>
+  <nav>
+    <a href="#inicio">Inicio</a>
+    <a href="#ranking">Ranking</a>
+    <a href="#resenas">Reseñas</a>
+    <a href="#mapa">Mapa</a>
+    <a href="#acerca">Acerca</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section id="inicio">
+  <h2>Puntuamos. Probamos. Recomendamos.</h2>
+  <p>Descubre las mejores hamburguesas de Cartago</p>
+</section>
+
+<!-- LOGIN -->
+<section>
+  <h2>Login</h2>
+  <input id="email" placeholder="Correo">
+  <input id="password" type="password" placeholder="Contraseña">
+  <button onclick="register()">Registrarse</button>
+  <button onclick="login()">Entrar</button>
+</section>
+
+<!-- RANKING -->
+<section id="ranking">
+  <h2>Ranking</h2>
+  <ul id="lista"></ul>
+</section>
+
+<!-- AGREGAR -->
+<section>
+  <h2>Agregar hamburguesa</h2>
+  <input id="nombre" placeholder="Nombre">
+  <input id="puntaje" type="number" placeholder="Puntaje">
+  <button onclick="guardar()">Guardar</button>
+</section>
+
+<!-- RESEÑAS -->
+<section id="resenas">
+  <h2>Reseñas</h2>
+  <textarea id="comentario" placeholder="Escribe algo"></textarea>
+  <button onclick="guardarResena()">Publicar</button>
+  <ul id="listaResenas"></ul>
+</section>
+
+<!-- MAPA -->
+<section id="mapa">
+  <h2>Mapa</h2>
+  <iframe src="https://www.google.com/maps?q=Cartago+Valle&output=embed"
+  width="100%" height="300"></iframe>
+</section>
+
+<!-- ACERCA -->
+<section id="acerca">
+  <h2>Acerca de</h2>
+  <p>Proyecto creado por Mateo, Isabela y Jean 🍔</p>
+</section>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import { getFirestore, collection, addDoc, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* 🔑 CONFIGURA ESTO */
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "TU_DOMINIO",
+  projectId: "TU_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* LOGIN */
+window.register = async () => {
+  await createUserWithEmailAndPassword(auth, email.value, password.value);
+  alert("Usuario creado");
+};
+
+window.login = async () => {
+  await signInWithEmailAndPassword(auth, email.value, password.value);
+  cargar();
+  cargarResenas();
+};
+
+/* GUARDAR BURGER */
+window.guardar = async () => {
+  await addDoc(collection(db, "burgers"), {
+    nombre: nombre.value,
+    puntaje: Number(puntaje.value)
+  });
+  cargar();
+};
+
+/* MOSTRAR RANKING */
+async function cargar() {
+  const datos = await getDocs(collection(db, "burgers"));
+  lista.innerHTML = "";
+
+  let arr = [];
+
+  datos.forEach(doc => arr.push(doc.data()));
+
+  arr.sort((a,b)=>b.puntaje-a.puntaje);
+
+  arr.forEach(d => {
+    lista.innerHTML += `<li>${d.nombre} ⭐ ${d.puntaje}</li>`;
+  });
+}
+
+/* RESEÑAS */
+window.guardarResena = async () => {
+  await addDoc(collection(db, "resenas"), {
+    texto: comentario.value
+  });
+  cargarResenas();
+};
+
+async function cargarResenas() {
+  const datos = await getDocs(collection(db, "resenas"));
+  listaResenas.innerHTML = "";
+
+  datos.forEach(doc => {
+    listaResenas.innerHTML += `<li>${doc.data().texto}</li>`;
+  });
+}
+
+</script>
+
+</body>
+</html>
